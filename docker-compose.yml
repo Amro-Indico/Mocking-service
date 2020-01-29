@@ -1,0 +1,21 @@
+version: "2"
+
+services: 
+
+  web: 
+    build: "."
+    ports: 
+      - "3000:3000"
+
+  minio:
+    ports:
+      - "9000:9000"
+
+    environment: 
+        MINIO_ACCESS_KEY: admin
+        MINIO_SECRET_KEY: secretsecret
+        MINIO_UPDATE: "off"
+    
+    image: "minio/minio"
+
+    command: 'server /data'

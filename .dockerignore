@@ -1,0 +1,9 @@
+node_modules
+dist
+.vscode
+*.log
+db.json
+.gitignore
+*.md
+.git
+src/tests

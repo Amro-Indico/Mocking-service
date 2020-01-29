@@ -1,0 +1,42 @@
+{
+  "name": "mocking-service",
+  "version": "2.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn ./src/index.ts",
+    "deven": "ts-node-dev --respawn ./src/saraver.ts",
+    "start": "ts-node ./src/index.ts",
+    "prod": "npm run build && node ./dist/index.js",
+    "test": "jest --runInBand"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/date-fns": "^2.6.0",
+    "@types/faker": "^4.1.9",
+    "@types/filesize": "^5.0.0",
+    "@types/mkdirp": "^0.5.2",
+    "chalk": "^3.0.0",
+    "express": "^4.17.1",
+    "express-basic-auth": "^1.2.0",
+    "faker": "^4.1.0",
+    "morgan": "^1.9.1",
+    "supertest": "^4.0.2",
+    "uuid": "^3.3.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.2",
+    "@types/jest": "^24.0.23",
+    "@types/lodash": "^4.14.149",
+    "@types/node": "^12.12.17",
+    "@types/supertest": "^2.0.8",
+    "@types/uuid": "^3.4.6",
+    "jest": "^24.9.0",
+    "prettier": "^1.19.1",
+    "ts-jest": "^24.2.0",
+    "ts-node-dev": "^1.0.0-pre.44",
+    "typescript": "^3.7.3"
+  }
+}

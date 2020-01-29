@@ -1,0 +1,1468 @@
+openapi: 3.0.1
+info:
+  title: Viroux API
+  description: Viroux API 1.2
+  version: '1.2'
+paths:
+  /api/1.2:
+    get:
+      operationId: get_1.2
+      responses:
+        '200':
+          description: API version and server time
+          content:
+            text/plain; charset=utf-8: {}
+  '/api/1.2/objects/{consumerId}/{contextId}/{objectId}/property/{propertyKey}':
+    post:
+      operationId: modifyObjectProperty_1.2
+      parameters:
+        - name: consumerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: propertyKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: header
+          schema:
+            type: string
+        - name: propertyValue
+          in: header
+          schema:
+            type: string
+      responses:
+        default:
+          description: default response
+          content:
+            text/plain; charset=utf-8: {}
+  '/api/1.2/objects/{consumerId}/{contextId}':
+    get:
+      summary: List objects for a context
+      operationId: listObjects_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: groupName
+          in: header
+          description: 'If set, will only return objects with the specified groupName in the id list.'
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for INFO for the consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of file information items
+          content:
+            application/json:
+              schema:
+                uniqueItems: true
+                type: array
+                items:
+                  $ref: '#/components/schemas/VirouxObject'
+        '500':
+          description: Invalid consumer id or context id
+    put:
+      operationId: upload_1.2
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: header
+          description: The name of the object being uploaded
+          schema:
+            type: string
+        - name: contentType
+          in: header
+          description: 'The content-type of the object being uploaded, for instance image/jpeg'
+          schema:
+            type: string
+        - name: replaces
+          in: header
+          description: 'If this object replaces an old object, provide the objectId of the old object, otherwise null'
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for CREATE for the consumer/context'
+          schema:
+            type: string
+        - name: groupName
+          in: header
+          description: 'Every object must have a groupName. If no groupName is provided, the name will be used as the groupName.'
+          schema:
+            type: string
+        - name: businessMetadata
+          in: header
+          description: Business metadata about the contents of the object. This info will be sent to Clouseau.
+          schema:
+            type: string
+          example: 'key1=value1,key2=value2...'
+        - name: metadata
+          in: header
+          description: 'Metadata entries to set for the object. This can be used by the consumer to save any info related to the object. The end-user can not change this info in Filip, but it will be displayed under "properties" for the object.'
+          schema:
+            type: string
+          example: 'key1=value1,key2=value2...'
+        - name: md5Checksum
+          in: header
+          description: The MD5 checksum of the file being uploaded for instance 5d41402abc4b2a76b9719d911017c592.
+          schema:
+            type: string
+        - name: description
+          in: header
+          description: 'User-provided description of the object, otherwise null'
+          schema:
+            type: string
+        - name: upptagningstyp
+          in: header
+          description: 'Uptake method, required if the file will be archived.'
+          schema:
+            type: string
+        - name: ingivenUpprattad
+          in: header
+          description: 'Filed/prepared, required if the file will be archived.'
+          schema:
+            type: string
+        - name: ingivenUpprattadAv
+          in: header
+          description: 'Filed/prepared by, required if the file will be archived.'
+          schema:
+            type: string
+        - name: ingivenUpprattadDatum
+          in: header
+          description: 'Filed/prepared date, required if the file will be archived.'
+          schema:
+            type: string
+        - name: locationInfo
+          in: header
+          description: 'User-provided info about location, otherwise null'
+          schema:
+            type: string
+        - name: copyrightInfo
+          in: header
+          description: 'User-provided info about copyright, otherwise null'
+          schema:
+            type: string
+      requestBody:
+        description: Octet stream with file content
+        content:
+          application/octet-stream:
+            schema:
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Object information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirouxObject'
+        '500':
+          description: 'Invalid consumer id or context id, or user is not authorized'
+  '/api/1.2/objects/{consumerId}/{contextId}/{objectId}/copy/{newConsumerId}/{newContextId}':
+    put:
+      summary: Copy an object to the same or another consumer/context
+      operationId: copy_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: newConsumerId
+          in: path
+          description: The id of the Viroux consumer to which the object should be copied
+          required: true
+          schema:
+            type: string
+        - name: newContextId
+          in: path
+          description: The id of the context within the new consumer to which the object should be copied.
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer or for the new consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for READ for the old consumer/context, and for CREATE for the new consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The object has been successfully copied
+        '500':
+          description: 'Invalid consumer id, context id or object id, or not authorized'
+  '/api/1.2/convert/{consumerId}/{contextId}/{objectId}':
+    post:
+      summary: Convert a document to PDF
+      operationId: convert_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object to convert
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for READ for the consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The generated PDF is returned
+        '500':
+          description: 'Invalid consumer id, context id or object id, or not authorized'
+  '/api/1.2/objects/{consumerId}/{contextId}/{objectId}/move/{newConsumerId}/{newContextId}':
+    put:
+      summary: Move an object to another consumer/context
+      operationId: move_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: newConsumerId
+          in: path
+          description: The id of the Viroux consumer to which the object should be moved
+          required: true
+          schema:
+            type: string
+        - name: newContextId
+          in: path
+          description: The id of the context within the new consumer to which the object should be moved.
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the old consumer or for the new consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for READ and DELETE for the old consumer/context, and for CREATE for the new consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The object has been successfully moved
+        '500':
+          description: 'Invalid consumer id, context id or object id, or not authorized'
+  '/api/1.2/virouxhistory/{userId}':
+    get:
+      summary: Get the file operation history for a user
+      operationId: getVirouxHistory_1
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of file operation items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirouxHistoryAggregated'
+        '500':
+          description: Invalid consumer id or context id
+  '/api/1.2/objects/{consumerId}/{contextId}/{objectId}':
+    get:
+      summary: Download an object (Image files can be resized)
+      operationId: download_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for READ for the consumer/context.'
+          schema:
+            type: string
+        - name: maxSize
+          in: header
+          description: The maximum size in pixels to resize to
+          schema:
+            type: integer
+            format: int32
+        - name: resizeHeight
+          in: header
+          description: 'Set to true if the image should be resized to a maximum height, otherwise it''s resized to a maximum width. If the parameter is not provided, the image will automatically be resized so that the largest side will be maxSize.'
+          schema:
+            type: string
+        - name: resizeSquare
+          in: header
+          description: 'Set to true to crop the resized image to a square, otherwise false'
+          schema:
+            type: boolean
+        - name: rotateToMetadata
+          in: header
+          description: 'Set to true if the returned image should be rotated according to the "rotation" metadata attrubute, otherwise false.'
+          schema:
+            type: boolean
+        - name: quality
+          in: header
+          description: 'A value between 0 (worst, smallest) and 1 (best, largest)'
+          schema:
+            type: number
+            format: float
+        - name: Range
+          in: header
+          description: 'An optional range in the form [<startpos>]-[<endpos>] to get a specific range of data from the object.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Object content
+          content:
+            application/octet-stream: {}
+        '500':
+          description: 'Invalid consumer id or context id, or user is not authorized'
+    delete:
+      summary: Delete an object
+      operationId: deleteObject
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for DELETE for the consumer/context.'
+          schema:
+            type: string
+        - name: comment
+          in: header
+          description: An optional comment that will be added to the log
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The object has been successfully deleted
+        '500':
+          description: 'Invalid consumer id, context id or object id, or not authorized'
+  '/api/1.2/objects/{consumerId}/{contextId}/{objectId}/undelete':
+    put:
+      summary: Undelete an object
+      operationId: undeleteObject_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for CREATE for the consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Object has been successfully undeleted
+        '500':
+          description: 'Invalid consumer id, context id or object id, or user is not authorized'
+  '/api/1.2/objects/{consumerId}/{contextId}/{objectId}/metadata':
+    post:
+      summary: Add a metadata entry for an object
+      operationId: addMetaData_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: key
+          in: header
+          description: The key of the metadata entry.
+          required: true
+          schema:
+            type: string
+        - name: value
+          in: header
+          description: The content of the value of the metadata entry.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The metadata entry has been successfully added
+        '500':
+          description: 'Invalid consumer id, context id or object id, or not authorized'
+    delete:
+      summary: Remove a metadata entry for an object
+      operationId: removeMetadata
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: key
+          in: header
+          description: The key of the metadata entry to remove.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The metadata entry has been successfully removed
+        '500':
+          description: 'Invalid consumer id, context id or object id, or not authorized'
+  /api/1.2/compress:
+    post:
+      summary: Compress a file
+      operationId: compress_1
+      parameters:
+        - name: fileName
+          in: header
+          description: The original name of the file (used inside the archive).
+          schema:
+            type: string
+        - name: password
+          in: header
+          description: 'The password to use, or null if no password should be set.'
+          schema:
+            type: string
+      requestBody:
+        description: The content to be zipped
+        content:
+          application/octet-stream:
+            schema:
+              type: array
+              items:
+                type: string
+                format: byte
+      responses:
+        '200':
+          description: The generated zip file is returned as an attachment
+  '/api/1.2/contexts/{consumerId}/{contextId}':
+    get:
+      summary: Get info about a context
+      operationId: getContextInfo_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: groupName
+          in: header
+          description: 'If set, will only return objects with the specified groupName in the id list'
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for INFO for the consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Context information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirouxContext'
+        '500':
+          description: Invalid consumer id or context id
+  '/api/1.2/objects/{consumerId}/{contextId}/{objectId}/info':
+    get:
+      summary: 'Get info about an object '
+      operationId: getObjectInfo_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for INFO for the consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Object information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirouxObject'
+        '500':
+          description: 'Invalid consumer id, context id or object id, or user is not authorized'
+  '/api/1.2/objects/{consumerId}/{contextId}/{objectId}/exif':
+    get:
+      summary: Get EXIF-metadata about an (image) object
+      operationId: getObjectExif_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for INFO for the consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: EXIF metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirouxObjectExif'
+        '500':
+          description: 'Invalid consumer id, context id or object id, or user is not authorized'
+  '/api/1.2/objects/{consumerId}/{contextId}/{objectId}/groupName':
+    post:
+      summary: Set the group name for an Object
+      operationId: modifyGroupName_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: groupName
+          in: header
+          description: The new group name
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for UPDATE for the consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The object has been successfully updated
+        '500':
+          description: 'Invalid consumer id, context id or object id, or not authorized'
+  '/api/1.2/objects/{consumerId}/{contextId}/{objectId}/rotation':
+    post:
+      summary: Set the rotation for an Object
+      operationId: modifyRotation_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: rotation
+          in: header
+          description: The new rotation
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for UPDATE for the consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The object has been successfully updated
+        '500':
+          description: 'Invalid consumer id, context id or object id, or not authorized'
+  '/api/1.2/contexts/{consumerId}':
+    get:
+      summary: List contexts ids for a consumer
+      operationId: listContexts_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of context ids
+          content:
+            application/json:
+              schema:
+                uniqueItems: true
+                type: array
+                items:
+                  type: string
+        '500':
+          description: Invalid consumer id or not authorized
+  /api/1.2/consumers:
+    get:
+      summary: List  consumer ids
+      operationId: listConsumers_1
+      responses:
+        '200':
+          description: List of consumer ids
+          content:
+            application/json:
+              schema:
+                uniqueItems: true
+                type: array
+                items:
+                  type: string
+  '/api/1.2/consumers/{consumerId}':
+    get:
+      summary: Get info about a consumer
+      operationId: getConsumerInfo_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: ID of the user making the request.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Consumer information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirouxContext'
+        '500':
+          description: Invalid consumer id or context id
+  '/api/1.2/contexts/resync/{consumerId}/{contextId}':
+    get:
+      summary: Resynchronize the object metadata cache for the given context
+      operationId: resyncContext_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: groupName
+          in: header
+          description: 'If set, will only return objects with the specified groupName in the id list'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Extenden context information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirouxContextExtended'
+        '500':
+          description: Invalid consumer id or context id
+  '/api/1.2/objects/{consumerId}/{contextId}/{objectId}/thumbnail':
+    get:
+      summary: Download a cached thumbnail 256x256 pixels cropped
+      operationId: getObjectThumbnail_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for INFO for the consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Thumbnail image
+          content:
+            image/jpeg: {}
+        '500':
+          description: 'Invalid consumer id, context id or object id, or user is not authorized'
+  '/api/1.2/objects/{consumerId}/{contextId}/{objectId}/displayName':
+    post:
+      summary: Set the displayName for an Object
+      operationId: modifyDisplayName_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: displayName
+          in: header
+          description: The new display name
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for UPDATE for the consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The object has been successfully updated
+        '500':
+          description: 'Invalid consumer id, context id or object id, or not authorized'
+  '/api/1.2/objects/{consumerId}/{contextId}/{objectId}/description':
+    post:
+      summary: Set the description for an Object
+      operationId: modifyDescription_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: description
+          in: header
+          description: The new description
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for UPDATE for the consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The object has been successfully updated
+        '500':
+          description: 'Invalid consumer id, context id or object id, or not authorized'
+  '/api/1.2/objects/{consumerId}/{contextId}/{objectId}/locationInfo':
+    post:
+      summary: Set the location info for an Object
+      operationId: modifyLocationInfo_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: locationInfo
+          in: header
+          description: The new location info
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for UPDATE for the consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The object has been successfully updated
+        '500':
+          description: 'Invalid consumer id, context id or object id, or not authorized'
+  '/api/1.2/objects/{consumerId}/{contextId}/{objectId}/copyrightInfo':
+    post:
+      summary: Set the copyright info for an Object
+      operationId: modifyCopyrightInfo_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: copyrightInfo
+          in: header
+          description: The new copyright info
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for UPDATE for the consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The object has been successfully updated
+        '500':
+          description: 'Invalid consumer id, context id or object id, or not authorized'
+  '/api/1.2/objects/{consumerId}/{contextId}/{objectId}/md5checksum':
+    post:
+      summary: Set the MD5 checksum for an Object
+      operationId: modifyMd5Checksum_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: path
+          description: The id of the object within the context
+          required: true
+          schema:
+            type: string
+        - name: md5Checksum
+          in: header
+          description: The new MD5 checksum
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for UPDATE for the consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The object has been successfully updated
+        '500':
+          description: 'Invalid consumer id, context id or object id, or not authorized'
+  '/api/1.2/contexts/extended/{consumerId}/{contextId}':
+    get:
+      summary: Get extended info about a context
+      operationId: getContextInfoExtended_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: groupName
+          in: header
+          description: 'If set, will only return objects with the specified groupName in the id list'
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for INFO for the consumer/context.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Extenden context information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirouxContextExtended'
+        '500':
+          description: Invalid consumer id or context id
+  '/api/1.2/bildbilaga/{consumerId}/{contextId}':
+    get:
+      summary: Produce a Bilbilaga PDF document
+      operationId: produceBildbilaga_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: contextId
+          in: path
+          description: The id of the context within the consumer
+          required: true
+          schema:
+            type: string
+        - name: objectIds
+          in: header
+          description: 'A comma-separated list of object id:s to include in the document. The objects must be images.'
+          schema:
+            type: string
+        - name: notes
+          in: header
+          description: A text to show on the front page of the document.
+          schema:
+            type: string
+        - name: userId
+          in: header
+          description: 'ID of the user making the request. If authorization is required for the consumer, this attribute is required, otherwise a SecurityException will be thrown. Authorization check will be performed for READ for the consumer/context.'
+          schema:
+            type: string
+        - name: imagesPerPage
+          in: header
+          description: 'The number of images to render per page in the document, 1 or 4.'
+          schema:
+            type: string
+        - name: forcePortrait
+          in: header
+          description: Rotate all landscape images 90 degrees.
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: The generated PDF is returned
+        '500':
+          description: 'Invalid consumer id, context id or object id, or not authorized'
+  '/api/1.2/properties/{consumerId}/{propertyKey}':
+    get:
+      summary: Retrieve a consumer property
+      operationId: getVirouxProperty_1
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: propertyKey
+          in: path
+          description: The property key
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The property value
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Invalid consumer id or not authorized
+    post:
+      summary: Set a consumer property
+      operationId: setVirouxProperty
+      parameters:
+        - name: consumerId
+          in: path
+          description: The id of the Viroux consumer
+          required: true
+          schema:
+            type: string
+        - name: propertyKey
+          in: path
+          description: The property key
+          required: true
+          schema:
+            type: string
+        - name: propertyValue
+          in: header
+          description: The property value
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The property value has been successfully set
+        '500':
+          description: Invalid consumer id or not authorized
+components:
+  schemas:
+    VirouxContextExtended:
+      type: object
+      properties:
+        contextId:
+          type: string
+        consumerId:
+          type: string
+        containerName:
+          type: string
+        contentLength:
+          type: integer
+          format: int64
+        groupList:
+          type: array
+          items:
+            $ref: '#/components/schemas/VirouxGroup'
+        description:
+          type: string
+        createAllowed:
+          type: boolean
+        readAllowed:
+          type: boolean
+        updateAllowed:
+          type: boolean
+        deleteAllowed:
+          type: boolean
+        infoAllowed:
+          type: boolean
+        contentLengthFormatted:
+          type: string
+        errorMessage:
+          type: string
+        objectList:
+          type: array
+          items:
+            $ref: '#/components/schemas/VirouxObject'
+    VirouxObject:
+      type: object
+      properties:
+        consumerId:
+          type: string
+        contextId:
+          type: string
+        objectId:
+          type: string
+        containerName:
+          type: string
+        replaces:
+          type: string
+        replacedBy:
+          type: string
+        path:
+          type: string
+        originalName:
+          type: string
+        contentLength:
+          type: integer
+          format: int64
+        contentType:
+          type: string
+        created:
+          type: string
+          format: date-time
+        modified:
+          type: string
+          format: date-time
+        virouxUrl:
+          type: string
+        metadata:
+          type: array
+          items:
+            $ref: '#/components/schemas/VirouxMetadataEntry'
+        businessMetadata:
+          type: array
+          items:
+            $ref: '#/components/schemas/VirouxMetadataEntry'
+        displayName:
+          type: string
+        description:
+          type: string
+        userId:
+          type: string
+        groupName:
+          type: string
+        locationInfo:
+          type: string
+        copyrightInfo:
+          type: string
+        rotation:
+          type: integer
+          format: int32
+        md5Checksum:
+          type: string
+        createdFormatted:
+          type: string
+        modifiedFormated:
+          type: string
+        contentLengthFormatted:
+          type: string
+        deleted:
+          type: string
+          format: date-time
+        upptagningstyp:
+          type: string
+        ingivenUpprattad:
+          type: string
+        ingivenUpprattadAv:
+          type: string
+        ingivenUpprattadDatum:
+          type: string
+          format: date-time
+        metadataFromString:
+          type: string
+          writeOnly: true
+        businessMetadataFromString:
+          type: string
+          writeOnly: true
+    VirouxGroup:
+      type: object
+      properties:
+        groupName:
+          type: string
+        objectCount:
+          type: integer
+          format: int32
+    VirouxContext:
+      type: object
+      properties:
+        contextId:
+          type: string
+        consumerId:
+          type: string
+        containerName:
+          type: string
+        contentLength:
+          type: integer
+          format: int64
+        groupList:
+          type: array
+          items:
+            $ref: '#/components/schemas/VirouxGroup'
+        description:
+          type: string
+        createAllowed:
+          type: boolean
+        readAllowed:
+          type: boolean
+        updateAllowed:
+          type: boolean
+        deleteAllowed:
+          type: boolean
+        infoAllowed:
+          type: boolean
+        contentLengthFormatted:
+          type: string
+        errorMessage:
+          type: string
+        objectIdList:
+          type: array
+          items:
+            type: string
+    VirouxHistoryAggregated:
+      type: object
+      properties:
+        newConsumerId:
+          type: string
+        newContextId:
+          type: string
+        fileCount:
+          type: integer
+          format: int32
+        timestamp:
+          type: string
+          format: date-time
+        key:
+          type: string
+    VirouxObjectExif:
+      type: object
+      properties:
+        originalDate:
+          type: string
+        modifiedDate:
+          type: string
+        cameraMake:
+          type: string
+        cameraModel:
+          type: string
+        imageWidth:
+          type: string
+        imageHeight:
+          type: string
+        orientation:
+          type: string
+        resolutionX:
+          type: string
+        resolutionY:
+          type: string
+        resolutionUnit:
+          type: string
+        software:
+          type: string
+        exposureProgram:
+          type: string
+        exposureMode:
+          type: string
+        iso:
+          type: string
+        shutterSpeed:
+          type: string
+        focalLength:
+          type: string
+        exposureBias:
+          type: string
+        aperture:
+          type: string
+        meteringMode:
+          type: string
+        flash:
+          type: string
+        colorSpace:
+          type: string
+        whiteBalanceMode:
+          type: string
+        lensMake:
+          type: string
+        lensModel:
+          type: string
+        latitude:
+          type: string
+        latitudeRef:
+          type: string
+        longitude:
+          type: string
+        longitudeRef:
+          type: string
+        altitude:
+          type: string
+        altitudeRef:
+          type: string
+        geoPoint:
+          type: string
+        fileSize:
+          type: string
+    VirouxMetadataEntry:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
